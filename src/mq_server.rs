@@ -48,11 +48,12 @@ fn process_req(vecs: &Vec<Vec<u8>>) -> Result<Card> {
 
 fn solve(body: &str) -> Result<Card> {
     use beat_solver_cards::{card_suites, lowest_power_card, shuffle_respecting_power};
+    use beat_solver::beaters;
 
     let game: Game = serde_json::from_str(body).with_context(|| "solve: game from_str")?;
     let ai_cards = shuffle_respecting_power(&game.ai_cards);
     let human_cards = shuffle_respecting_power(&game.human_cards);
-    let beater_suites = beat_solver::beaters(&card_suites(&human_cards), &card_suites(&ai_cards))
+    let beater_suites = beaters(&card_suites(&human_cards), &card_suites(&ai_cards))
         .with_context(|| "solve")?;
     // peek last beater - the nearest move
     match beater_suites.last() {
