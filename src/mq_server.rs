@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use crate::game_types::{Card, Game};
 use crate::{beat_solver, beat_solver_cards};
 use anyhow::{Context, Result};
@@ -5,8 +6,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
-    fn wrap(s: &str) -> String {
-        format!("run_zmq: {}", s)
+    fn wrap<T>(t: T) -> String
+        where T: Debug {
+        format!("run_zmq: {:?}", t)
     }
     println!("STARTING MQ ON PORT {}", port);
     let ctx: zmq::Context = zmq::Context::new();
@@ -24,7 +26,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
                     let msg_id = &vecs[0];
                     let msg = card.id;
                     _ = router
-                        .send(msg_id, zmq::SNDMORE)
+                        .send(msg_id, zmq::SNDMORE.clone())
                         .map_err(|err| eprintln!("run_zmq: send msg_id: {:?}", err));
                     _ = router
                         .send(&msg, 0)
@@ -45,24 +47,19 @@ fn process_req(vecs: &Vec<Vec<u8>>) -> Result<Card> {
 }
 
 fn solve(body: &str) -> Result<Card> {
+    use beat_solver_cards::{card_suites, lowest_power_card, shuffle_respecting_power};
+
     let game: Game = serde_json::from_str(body).with_context(|| "solve: game from_str")?;
-    let ai_cards = beat_solver_cards::shuffle_respecting_power(&game.ai_cards);
-    let human_cards = beat_solver_cards::shuffle_respecting_power(&game.human_cards);
-    let beater_suites = beat_solver::beaters(
-        &beat_solver_cards::card_suites(&human_cards),
-        &beat_solver_cards::card_suites(&ai_cards),
-    );
+    let ai_cards = shuffle_respecting_power(&game.ai_cards);
+    let human_cards = shuffle_respecting_power(&game.human_cards);
+    let beater_suites = beat_solver::beaters(&card_suites(&human_cards), &card_suites(&ai_cards))
+        .with_context(|| "solve")?;
     // peek last beater - the nearest move
     match beater_suites.last() {
-        None => anyhow::bail!("solve: no beater"),
-        Some(&beater_suite) => {
-            match beat_solver_cards::lowest_power_card(&ai_cards.clone(), beater_suite) {
-                None => anyhow::bail!(format!(
-                    "solve: no lowest card with suite {:?}",
-                    beater_suite
-                )),
-                Some(card) => Ok(card),
-            }
-        }
+        None => anyhow::bail!("solve: no last"),
+        Some(&beater_suite) => match lowest_power_card(&ai_cards.clone(), beater_suite) {
+            None => anyhow::bail!("solve: no lowest card with suite {:?}", beater_suite),
+            Some(card) => Ok(card),
+        },
     }
 }
