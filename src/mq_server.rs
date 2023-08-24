@@ -23,11 +23,11 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
             Err(err) => eprintln!("run_zmq: BAD INPUT: {}", err),
             Ok(vecs) => {
                 let msg = match process_req(&vecs) {
-                    Err(err) => format!("error: {}", err),
+                    Err(err) => format!("error: {:?}", err),
                     Ok(card) => card.id
                 };
                 let msg_id = &vecs[0];
-                println!("send resp: id={:?}, body={}", msg_id, msg);
+                println!("send resp: id={:?}, msg={}", msg_id, msg);
                 let _ = router
                     .send(msg_id, zmq::SNDMORE.clone())
                     .map_err(|err| eprintln!("run_zmq: BAD send msg_id: {:?}", err));
