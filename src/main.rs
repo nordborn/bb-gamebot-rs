@@ -22,11 +22,16 @@ fn main() -> Result<()> {
 
     let must_stop_spawn = Arc::clone(&must_stop);
     thread::spawn(move || {
-        let _ = run_zmq(port, must_stop_spawn).map_err(|err| eprintln!("ERR: {:?}", err));
+        let _ = run_zmq(port, must_stop_spawn).map_err(
+            |err| {
+                eprintln!("ERR: {:?}", err);
+                std::process::exit(1)
+            }
+        );
     });
 
     while !util::read_atomic_bool(&must_stop){
-        thread::sleep(Duration::from_secs(1));
+        thread::sleep(Duration::from_millis(100));
     }
 
     println!("STOPPING WITH DELAY");

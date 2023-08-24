@@ -13,7 +13,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     println!("STARTING MQ ON PORT {}", port);
     let ctx: zmq::Context = zmq::Context::new();
     let router = ctx.socket(zmq::ROUTER).with_context(|| wrap("router"))?;
-    let addr = format!("tcp://localhost:{}", port);
+    let addr = format!("tcp://*:{}", port);
     router.connect(&addr).with_context(|| wrap("connect"))?;
 
     while !util::read_atomic_bool(&must_stop) {
