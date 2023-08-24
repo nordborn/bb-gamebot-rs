@@ -14,25 +14,26 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     let ctx: zmq::Context = zmq::Context::new();
     let router = ctx.socket(zmq::ROUTER).with_context(|| wrap("router"))?;
     let addr = format!("tcp://*:{}", port);
-    router.connect(&addr).with_context(|| wrap("connect"))?;
+    router.bind(&addr).with_context(|| wrap("connect"))?;
 
     while !util::read_atomic_bool(&must_stop) {
         println!("run_zmq: waiting for msgs");
         let req = router.recv_multipart(0);
         match req {
             Err(err) => eprintln!("run_zmq: BAD INPUT: {}", err),
-            Ok(vecs) => match process_req(&vecs) {
-                Err(err) => eprintln!("run_zmq: {}", err),
-                Ok(card) => {
-                    let msg_id = &vecs[0];
-                    let msg = card.id;
-                    let _ = router
-                        .send(msg_id, zmq::SNDMORE.clone())
-                        .map_err(|err| eprintln!("run_zmq: send msg_id: {:?}", err));
-                    let _ = router
-                        .send(&msg, 0)
-                        .map_err(|err| eprintln!("run_zmq: send data: {:?}", err));
-                }
+            Ok(vecs) => {
+                let msg = match process_req(&vecs) {
+                    Err(err) => format!("error: {}", err),
+                    Ok(card) => card.id
+                };
+                let msg_id = &vecs[0];
+                println!("send resp: id={:?}, body={}", msg_id, msg);
+                let _ = router
+                    .send(msg_id, zmq::SNDMORE.clone())
+                    .map_err(|err| eprintln!("run_zmq: BAD send msg_id: {:?}", err));
+                let _ = router
+                    .send(&msg, 0)
+                    .map_err(|err| eprintln!("run_zmq: BAD send data: {:?}", err));
             },
         }
     }
