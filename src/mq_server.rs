@@ -1,8 +1,8 @@
 use std::fmt::Debug;
 use crate::game_types::{Card, Game};
-use crate::{beat_solver, beat_solver_cards};
+use crate::{beat_solver, beat_solver_cards, util};
 use anyhow::{Context, Result};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
@@ -16,7 +16,8 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     let addr = format!("tcp://localhost:{}", port);
     router.connect(&addr).with_context(|| wrap("connect"))?;
 
-    while !must_stop.load(Ordering::Relaxed) {
+    while !util::read_atomic_bool(&must_stop) {
+        println!("run_zmq: waiting for msgs");
         let req = router.recv_multipart(0);
         match req {
             Err(err) => eprintln!("run_zmq: BAD INPUT: {}", err),
@@ -25,10 +26,10 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
                 Ok(card) => {
                     let msg_id = &vecs[0];
                     let msg = card.id;
-                    _ = router
+                    let _ = router
                         .send(msg_id, zmq::SNDMORE.clone())
                         .map_err(|err| eprintln!("run_zmq: send msg_id: {:?}", err));
-                    _ = router
+                    let _ = router
                         .send(&msg, 0)
                         .map_err(|err| eprintln!("run_zmq: send data: {:?}", err));
                 }

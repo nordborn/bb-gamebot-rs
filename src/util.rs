@@ -3,6 +3,9 @@ use std::env;
 use std::error::Error;
 use std::str::FromStr;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
 pub fn get_env<T>(env_name: &str) -> Result<T>
 where
     T: FromStr,
@@ -10,4 +13,8 @@ where
 {
     let s = env::var(env_name).with_context(|| format!("no {}", env_name))?;
     s.parse().with_context(|| format!("{}={}", env_name, s))
+}
+
+pub fn read_atomic_bool(v: &Arc<AtomicBool>) -> bool{
+    return v.load(Ordering::Relaxed)
 }
