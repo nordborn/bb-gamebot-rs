@@ -17,10 +17,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
             Err(err) => error!("{:?}", err),
             Ok(vecs) => {
                 let msg = match process_req(&vecs) {
-                    Err(err) => {
-                        error!("{:?}", err);
-                        f!("error: {err:?}")
-                    }
+                    Err(err) => f!("error: {err:?}"),
                     Ok(card) => card.id,
                 };
                 let msg_id = &vecs[0];
