@@ -14,7 +14,11 @@ use std::time::Duration;
 
 use crate::mq_server::run_zmq;
 
-use log::{info, error};
+#[macro_use]
+extern crate log;
+
+#[macro_use]
+extern crate fstrings;
 
 
 fn main() -> Result<()> {
@@ -30,7 +34,7 @@ fn main() -> Result<()> {
     thread::spawn(move || {
         let _ = run_zmq(port, must_stop_spawn).map_err(
             |err| {
-                error!("ERR: {:?}", err);
+                error!("{:?}", err);
                 std::process::exit(1)
             }
         );

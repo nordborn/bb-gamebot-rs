@@ -4,17 +4,16 @@ use crate::{beat_solver, beat_solver_cards, util};
 use anyhow::{Context, Result};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
-use log::{info, error};
 
 pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     fn wrap<T>(t: T) -> String
         where T: Debug {
-        format!("run_zmq: {:?}", t)
+        f!("run_zmq: {t:?}")
     }
     info!("STARTING MQ ON PORT {}", port);
     let ctx: zmq::Context = zmq::Context::new();
     let router = ctx.socket(zmq::ROUTER).with_context(|| wrap("router"))?;
-    let addr = format!("tcp://*:{}", port);
+    let addr = f!("tcp://*:{port}");
     router.bind(&addr).with_context(|| wrap("connect"))?;
 
     while !util::read_atomic_bool(&must_stop) {
@@ -24,7 +23,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
             Err(err) => error!("run_zmq: BAD INPUT: {}", err),
             Ok(vecs) => {
                 let msg = match process_req(&vecs) {
-                    Err(err) => format!("error: {:?}", err),
+                    Err(err) => f!("error: {err:?}"),
                     Ok(card) => card.id
                 };
                 let msg_id = &vecs[0];
