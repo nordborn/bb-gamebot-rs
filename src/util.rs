@@ -15,6 +15,6 @@ where
     s.parse().with_context(|| f!("{env_name}={s}"))
 }
 
-pub fn read_atomic_bool(v: &Arc<AtomicBool>) -> bool{
-    return v.load(Ordering::Relaxed)
+pub fn read_atomic_bool(v: &Arc<AtomicBool>) -> bool {
+    return v.load(Ordering::Relaxed);
 }

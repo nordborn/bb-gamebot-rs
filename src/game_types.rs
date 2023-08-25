@@ -17,9 +17,9 @@ pub struct Card {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Game {
     pub id: String,
-    #[serde(alias="aiCards")]
+    #[serde(alias = "aiCards")]
     pub ai_cards: Vec<Card>,
-    #[serde(alias="humanCards")]
+    #[serde(alias = "humanCards")]
     pub human_cards: Vec<Card>,
 }
 

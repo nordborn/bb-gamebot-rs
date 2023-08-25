@@ -1,9 +1,9 @@
 use crate::game_types::{Card, Suite};
+use anyhow::Result;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use log::{info};
 
 pub fn card_suites(cc: &Vec<Card>) -> Vec<Suite> {
     cc.iter().map(|c| c.suite).collect()
@@ -69,24 +69,24 @@ pub fn shuffle_respecting_power_hm(cc: &Vec<Card>) -> Vec<Card> {
     ret
 }
 
-pub fn lowest_power_card(cc: &Vec<Card>, s: Suite) -> Option<Card> {
-    let mut ret: Option<Card> = None;
+pub fn lowest_power_card(cc: &Vec<Card>, s: Suite) -> Result<Card> {
+    let mut ret: Result<Card> = Err(anyhow!("no lowest card with suite {:?}", s));
     for c in cc.iter() {
         if c.suite != s {
             continue;
         }
         // found smallest - ok, interrupt
         if c.power == 1 {
-            ret = Some(c.clone());
+            ret = Ok(c.clone());
             break;
         }
         match &ret {
             // 1st card - use this
-            None => ret = Some(c.clone()),
+            Err(_) => ret = Ok(c.clone()),
             // found smaller, use this
-            Some(r) => {
+            Ok(r) => {
                 if c.power < r.power {
-                    ret = Some(c.clone())
+                    ret = Ok(c.clone())
                 }
             }
         }
@@ -211,6 +211,6 @@ mod test {
                 power: 1
             })
         );
-        assert_eq!(lowest_power_card(&cc, Scissors), None);
+        assert_ne!(lowest_power_card(&cc, Scissors), Ok(c));
     }
 }

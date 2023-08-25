@@ -1,7 +1,7 @@
 use env_logger::fmt::Color;
-use std::io::Write;
+use log::debug;
 use log::{Level, LevelFilter};
-use log::{debug};
+use std::io::Write;
 
 pub fn init_logger() {
     // [2023-08-25T06:11:29Z INFO  bb_gamebot_rs]
