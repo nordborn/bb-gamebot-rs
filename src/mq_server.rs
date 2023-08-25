@@ -25,9 +25,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
                 let _ = router
                     .send(msg_id, zmq::SNDMORE)
                     .map_err(|err| error!("{:?}", err));
-                let _ = router
-                    .send(&msg, 0)
-                    .map_err(|err| error!("{:?}", err));
+                let _ = router.send(&msg, 0).map_err(|err| error!("{:?}", err));
             }
         }
     }
@@ -49,8 +47,7 @@ fn solve(body: &str) -> Result<Card> {
     let game: Game = serde_json::from_str(body)?;
     let ai_cards = shuffle_respecting_power(&game.ai_cards);
     let human_cards = shuffle_respecting_power(&game.human_cards);
-    let beater_suites =
-        beaters(&card_suites(&human_cards), &card_suites(&ai_cards))?;
+    let beater_suites = beaters(&card_suites(&human_cards), &card_suites(&ai_cards))?;
     // peek last beater - the nearest move
     match beater_suites.last() {
         None => anyhow::bail!("no last"),

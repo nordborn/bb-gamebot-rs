@@ -213,7 +213,7 @@ mod test {
         );
         match lowest_power_card(&cc, Scissors) {
             Err(_) => assert!(true),
-            Ok(_) => assert!(false)
+            Ok(_) => assert!(false),
         }
         Ok(())
     }
