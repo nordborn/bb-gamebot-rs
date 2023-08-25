@@ -9,7 +9,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     let ctx: zmq::Context = zmq::Context::new();
     let router = ctx.socket(zmq::ROUTER)?;
     let addr = f!("tcp://*:{port}");
-    router.connect(&addr).with_context(|| f!("{addr=}"))?;
+    router.bind(&addr).with_context(|| f!("{addr=}"))?;
 
     while !util::read_atomic_bool(&must_stop) {
         info!("waiting for msgs");
@@ -54,6 +54,6 @@ fn solve(body: &str) -> Result<Card> {
     // peek last beater - the nearest move
     match beater_suites.last() {
         None => anyhow::bail!("no last"),
-        Some(&beater_suite) => Ok(lowest_power_card(&ai_cards.clone(), beater_suite)?),
+        Some(&beater_suite) => lowest_power_card(&ai_cards.clone(), beater_suite),
     }
 }
