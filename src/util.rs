@@ -16,5 +16,5 @@ where
 }
 
 pub fn read_atomic_bool(v: &Arc<AtomicBool>) -> bool {
-    return v.load(Ordering::Relaxed);
+    v.load(Ordering::Relaxed)
 }

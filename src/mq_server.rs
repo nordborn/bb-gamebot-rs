@@ -17,13 +17,16 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
             Err(err) => error!("{:?}", err),
             Ok(vecs) => {
                 let msg = match process_req(&vecs) {
-                    Err(err) => f!("error: {err:?}"),
+                    Err(err) => {
+                        error!("{:?}", err);
+                        f!("error: {err}")
+                    }
                     Ok(card) => card.id,
                 };
                 let msg_id = &vecs[0];
                 info!("send resp: id={:?}, msg={}", msg_id, msg);
                 let _ = router
-                    .send(msg_id, zmq::SNDMORE.clone())
+                    .send(msg_id, zmq::SNDMORE)
                     .map_err(|err| error!("{:?}", err));
                 let _ = router
                     .send(&msg, 0)
@@ -35,11 +38,11 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     Ok(())
 }
 
-fn process_req(vecs: &Vec<Vec<u8>>) -> Result<Card> {
+fn process_req(vecs: &[Vec<u8>]) -> Result<Card> {
     let msg_id = &vecs[0];
     let body = std::str::from_utf8(&vecs[1])?;
     info!("got req: id={:?}, body={}", msg_id, body);
-    Ok(solve(body)?)
+    solve(body)
 }
 
 fn solve(body: &str) -> Result<Card> {

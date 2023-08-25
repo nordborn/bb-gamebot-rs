@@ -44,8 +44,8 @@ pub fn beaters(opponent: &Vec<Suite>, my: &Vec<Suite>) -> Result<Vec<Suite>> {
 
 /// peek_card peeks card from deck and returns the card and updated deck
 /// if no card in deck, then Nothing returned and deck is the same
-fn peek_card(suite: Suite, deck: &Vec<Suite>) -> (Option<Suite>, Vec<Suite>) {
-    let mut deck1 = deck.clone();
+fn peek_card(suite: Suite, deck: &[Suite]) -> (Option<Suite>, Vec<Suite>) {
+    let mut deck1 = deck.to_owned();
     if let Some(ix) = deck.iter().position(|&x| x == suite) {
         deck1.remove(ix);
         return (Some(suite), deck1);

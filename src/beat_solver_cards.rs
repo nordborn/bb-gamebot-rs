@@ -5,7 +5,7 @@ use rand::thread_rng;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-pub fn card_suites(cc: &Vec<Card>) -> Vec<Suite> {
+pub fn card_suites(cc: &[Card]) -> Vec<Suite> {
     cc.iter().map(|c| c.suite).collect()
 }
 
@@ -44,7 +44,7 @@ pub fn shuffle_respecting_power_hm(cc: &Vec<Card>) -> Vec<Card> {
     // fill hashmap <k: power, v: [Card]>
     for c in cc {
         rhm.get_mut()
-            .entry(c.power.clone())
+            .entry(c.power)
             .and_modify(|v| v.push(c.clone()))
             .or_insert(vec![c.clone()]);
     }
@@ -69,7 +69,7 @@ pub fn shuffle_respecting_power_hm(cc: &Vec<Card>) -> Vec<Card> {
     ret
 }
 
-pub fn lowest_power_card(cc: &Vec<Card>, s: Suite) -> Result<Card> {
+pub fn lowest_power_card(cc: &[Card], s: Suite) -> Result<Card> {
     let mut ret: Result<Card> = Err(anyhow!("no lowest card with suite {:?}", s));
     for c in cc.iter() {
         if c.suite != s {
