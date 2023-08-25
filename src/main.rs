@@ -3,6 +3,7 @@ mod beat_solver_cards;
 mod game_types;
 mod mq_server;
 mod util;
+mod mylog;
 
 use anyhow::Result;
 use signal_hook::consts::{SIGINT, SIGTERM};
@@ -13,8 +14,13 @@ use std::time::Duration;
 
 use crate::mq_server::run_zmq;
 
+use log::{info, error};
+
+
 fn main() -> Result<()> {
-    println!("RUN GAME SOLVER");
+    mylog::init_logger();
+
+    info!("RUN GAME SOLVER");
     let port: String = util::get_env("ZMQ_PORT")?;
     let must_stop = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(SIGTERM, Arc::clone(&must_stop))?;
@@ -24,7 +30,7 @@ fn main() -> Result<()> {
     thread::spawn(move || {
         let _ = run_zmq(port, must_stop_spawn).map_err(
             |err| {
-                eprintln!("ERR: {:?}", err);
+                error!("ERR: {:?}", err);
                 std::process::exit(1)
             }
         );
@@ -34,8 +40,8 @@ fn main() -> Result<()> {
         thread::sleep(Duration::from_millis(100));
     }
 
-    println!("STOPPING WITH DELAY");
+    info!("STOPPING WITH DELAY");
     thread::sleep(Duration::from_secs(10));
-    println!("STOPPED");
+    info!("STOPPED");
     Ok(())
 }

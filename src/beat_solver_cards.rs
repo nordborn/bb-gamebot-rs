@@ -3,6 +3,7 @@ use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use log::{info};
 
 pub fn card_suites(cc: &Vec<Card>) -> Vec<Suite> {
     cc.iter().map(|c| c.suite).collect()
@@ -64,7 +65,7 @@ pub fn shuffle_respecting_power_hm(cc: &Vec<Card>) -> Vec<Card> {
             ret.append(v);
         }
     }
-    println!("{:?}", ret);
+    info!("{:?}", ret);
     ret
 }
 

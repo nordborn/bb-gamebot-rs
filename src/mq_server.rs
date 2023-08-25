@@ -4,47 +4,48 @@ use crate::{beat_solver, beat_solver_cards, util};
 use anyhow::{Context, Result};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use log::{info, error};
 
 pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     fn wrap<T>(t: T) -> String
         where T: Debug {
         format!("run_zmq: {:?}", t)
     }
-    println!("STARTING MQ ON PORT {}", port);
+    info!("STARTING MQ ON PORT {}", port);
     let ctx: zmq::Context = zmq::Context::new();
     let router = ctx.socket(zmq::ROUTER).with_context(|| wrap("router"))?;
     let addr = format!("tcp://*:{}", port);
     router.bind(&addr).with_context(|| wrap("connect"))?;
 
     while !util::read_atomic_bool(&must_stop) {
-        println!("run_zmq: waiting for msgs");
+        info!("run_zmq: waiting for msgs");
         let req = router.recv_multipart(0);
         match req {
-            Err(err) => eprintln!("run_zmq: BAD INPUT: {}", err),
+            Err(err) => error!("run_zmq: BAD INPUT: {}", err),
             Ok(vecs) => {
                 let msg = match process_req(&vecs) {
                     Err(err) => format!("error: {:?}", err),
                     Ok(card) => card.id
                 };
                 let msg_id = &vecs[0];
-                println!("send resp: id={:?}, msg={}", msg_id, msg);
+                info!("send resp: id={:?}, msg={}", msg_id, msg);
                 let _ = router
                     .send(msg_id, zmq::SNDMORE.clone())
-                    .map_err(|err| eprintln!("run_zmq: BAD send msg_id: {:?}", err));
+                    .map_err(|err| error!("run_zmq: BAD send msg_id: {:?}", err));
                 let _ = router
                     .send(&msg, 0)
-                    .map_err(|err| eprintln!("run_zmq: BAD send data: {:?}", err));
+                    .map_err(|err| error!("run_zmq: BAD send data: {:?}", err));
             },
         }
     }
-    println!("STOPPING GRACEFULLY");
+    info!("STOPPING GRACEFULLY");
     Ok(())
 }
 
 fn process_req(vecs: &Vec<Vec<u8>>) -> Result<Card> {
     let msg_id = &vecs[0];
     let body = std::str::from_utf8(&vecs[1]).with_context(|| "process_req: body")?;
-    println!("got req: id={:?}, body={}", msg_id, body);
+    info!("got req: id={:?}, body={}", msg_id, body);
     Ok(solve(body).with_context(|| "process_req")?)
 }
 
