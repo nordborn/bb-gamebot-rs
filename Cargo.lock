@@ -76,6 +76,7 @@ name = "bb-gamebot-rs"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "backtrace",
  "chrono",
  "env_logger",
  "fstrings",
