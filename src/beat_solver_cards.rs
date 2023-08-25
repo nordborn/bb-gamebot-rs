@@ -159,6 +159,11 @@ mod test {
                 power: 2,
             },
             Card {
+                id: "1".into(),
+                suite: Paper,
+                power: 1,
+            },
+            Card {
                 id: "3".into(),
                 suite: Paper,
                 power: 2,
@@ -168,11 +173,6 @@ mod test {
                 suite: Paper,
                 power: 2,
             },
-            Card {
-                id: "1".into(),
-                suite: Paper,
-                power: 1,
-            },
         ];
         let cc1 = shuffle_respecting_power_hm(&cc);
         assert_eq!(cc1[1].power, 2);
@@ -180,7 +180,7 @@ mod test {
     }
 
     #[test]
-    fn test_lowest_power_card() {
+    fn test_lowest_power_card() -> Result<()> {
         let cc = vec![
             Card {
                 id: "4".into(),
@@ -204,13 +204,17 @@ mod test {
             },
         ];
         assert_eq!(
-            lowest_power_card(&cc, Paper),
-            Some(Card {
+            lowest_power_card(&cc, Paper)?,
+            Card {
                 id: "1".into(),
                 suite: Paper,
                 power: 1
-            })
+            }
         );
-        assert_ne!(lowest_power_card(&cc, Scissors), Ok(c));
+        match lowest_power_card(&cc, Scissors) {
+            Err(_) => assert!(true),
+            Ok(_) => assert!(false)
+        }
+        Ok(())
     }
 }

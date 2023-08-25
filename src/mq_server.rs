@@ -1,28 +1,20 @@
 use crate::game_types::{Card, Game};
 use crate::{beat_solver, beat_solver_cards, util};
 use anyhow::{Context, Result};
-use std::fmt::Debug;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
-    fn wrap<T>(t: T) -> String
-    where
-        T: Debug,
-    {
-        f!("run_zmq: {t:?}")
-    }
     info!("STARTING MQ ON PORT {}", port);
     let ctx: zmq::Context = zmq::Context::new();
-    let router = ctx.socket(zmq::ROUTER).with_context(|| wrap("router"))?;
+    let router = ctx.socket(zmq::ROUTER)?;
     let addr = f!("tcp://*:{port}");
-    router.connect(&addr).with_context(|| wrap("connect"))?;
+    router.connect(&addr).with_context(|| f!("{addr=}"))?;
 
     while !util::read_atomic_bool(&must_stop) {
         info!("waiting for msgs");
-        let req = router.recv_multipart(0);
-        match req {
-            Err(err) => error!("BAD INPUT: {}", err),
+        match router.recv_multipart(0) {
+            Err(err) => error!("{:?}", err),
             Ok(vecs) => {
                 let msg = match process_req(&vecs) {
                     Err(err) => f!("error: {err:?}"),
@@ -32,10 +24,10 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
                 info!("send resp: id={:?}, msg={}", msg_id, msg);
                 let _ = router
                     .send(msg_id, zmq::SNDMORE.clone())
-                    .map_err(|err| error!("BAD send msg_id: {:?}", err));
+                    .map_err(|err| error!("{:?}", err));
                 let _ = router
                     .send(&msg, 0)
-                    .map_err(|err| error!("BAD send data: {:?}", err));
+                    .map_err(|err| error!("{:?}", err));
             }
         }
     }
@@ -45,23 +37,23 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
 
 fn process_req(vecs: &Vec<Vec<u8>>) -> Result<Card> {
     let msg_id = &vecs[0];
-    let body = std::str::from_utf8(&vecs[1]).with_context(|| "process_req: body")?;
+    let body = std::str::from_utf8(&vecs[1])?;
     info!("got req: id={:?}, body={}", msg_id, body);
-    Ok(solve(body).with_context(|| "process_req")?)
+    Ok(solve(body)?)
 }
 
 fn solve(body: &str) -> Result<Card> {
     use beat_solver::beaters;
     use beat_solver_cards::{card_suites, lowest_power_card, shuffle_respecting_power};
 
-    let game: Game = serde_json::from_str(body).with_context(|| "solve: game from_str")?;
+    let game: Game = serde_json::from_str(body)?;
     let ai_cards = shuffle_respecting_power(&game.ai_cards);
     let human_cards = shuffle_respecting_power(&game.human_cards);
     let beater_suites =
-        beaters(&card_suites(&human_cards), &card_suites(&ai_cards)).with_context(|| "solve")?;
+        beaters(&card_suites(&human_cards), &card_suites(&ai_cards))?;
     // peek last beater - the nearest move
     match beater_suites.last() {
-        None => anyhow::bail!("solve: no last"),
+        None => anyhow::bail!("no last"),
         Some(&beater_suite) => Ok(lowest_power_card(&ai_cards.clone(), beater_suite)?),
     }
 }

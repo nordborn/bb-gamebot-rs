@@ -1,5 +1,4 @@
 use env_logger::fmt::Color;
-use log::debug;
 use log::{Level, LevelFilter};
 use std::io::Write;
 
