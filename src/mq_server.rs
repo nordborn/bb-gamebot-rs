@@ -9,7 +9,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     let ctx: zmq::Context = zmq::Context::new();
     let router = ctx.socket(zmq::ROUTER)?;
     let addr = f!("tcp://*:{port}");
-    router.bind(&addr).with_context(|| f!("{addr=}"))?;
+    router.bind(&addr).context(f!("{addr=}"))?;
 
     while !util::read_atomic_bool(&must_stop) {
         info!("waiting for msgs");

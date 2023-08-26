@@ -11,8 +11,8 @@ where
     T: FromStr,
     <T as FromStr>::Err: Sync + Send + Error + 'static,
 {
-    let s = env::var(env_name).with_context(|| f!("no {env_name}"))?;
-    s.parse().with_context(|| f!("{env_name}={s}"))
+    let s = env::var(env_name).context(f!("no {env_name}"))?;
+    s.parse().context(f!("{env_name}={s}"))
 }
 
 pub fn read_atomic_bool(v: &Arc<AtomicBool>) -> bool {
