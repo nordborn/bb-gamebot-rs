@@ -6,8 +6,7 @@ use std::sync::Arc;
 
 pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     info!("STARTING MQ ON PORT {}", port);
-    let ctx: zmq::Context = zmq::Context::new();
-    let router = ctx.socket(zmq::ROUTER)?;
+    let router = zmq::Context::new().socket(zmq::ROUTER)?;
     let addr = f!("tcp://*:{port}");
     router.bind(&addr).context(f!("{addr=}"))?;
 
