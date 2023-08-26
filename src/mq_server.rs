@@ -16,11 +16,13 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
         match router.recv_multipart(0) {
             Err(err) => error!("{:?}", err),
             Ok(vecs) => {
-                let msg = match process_req(&vecs) {
+                let msg_id = &vecs[0];
+                let body = std::str::from_utf8(&vecs[1])?;
+                info!("got req: id={:?}, body={}", msg_id, body);
+                let msg = match solve(body) {
                     Err(err) => f!("error: {err:?}"),
                     Ok(card) => card.id,
                 };
-                let msg_id = &vecs[0];
                 info!("send resp: id={:?}, msg={}", msg_id, msg);
                 let _ = router
                     .send(msg_id, zmq::SNDMORE)
@@ -31,13 +33,6 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
     }
     info!("STOPPING GRACEFULLY");
     Ok(())
-}
-
-fn process_req(vecs: &[Vec<u8>]) -> Result<Card> {
-    let msg_id = &vecs[0];
-    let body = std::str::from_utf8(&vecs[1])?;
-    info!("got req: id={:?}, body={}", msg_id, body);
-    solve(body)
 }
 
 fn solve(body: &str) -> Result<Card> {
