@@ -5,15 +5,6 @@ mod mq_server;
 mod mylog;
 mod util;
 
-use anyhow::Result;
-use signal_hook::consts::{SIGINT, SIGTERM};
-use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
-
-use crate::mq_server::run_zmq;
-
 #[macro_use]
 extern crate log;
 
@@ -22,6 +13,15 @@ extern crate fstrings;
 
 #[macro_use]
 extern crate anyhow;
+
+use anyhow::Result;
+use signal_hook::consts::{SIGINT, SIGTERM};
+use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
+
+use crate::mq_server::run_zmq;
 
 fn main() -> Result<()> {
     mylog::init_logger();
