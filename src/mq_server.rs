@@ -45,6 +45,6 @@ fn solve(body: &str) -> Result<Card> {
     // peek last beater - the nearest move
     match beater_suites.last() {
         None => anyhow::bail!("no last"),
-        Some(&beater_suite) => lowest_power_card(&ai_cards.clone(), beater_suite),
+        Some(&beater_suite) => lowest_power_card(&ai_cards, beater_suite),
     }
 }
