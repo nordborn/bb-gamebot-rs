@@ -19,7 +19,7 @@ pub fn run_zmq(port: String, must_stop: Arc<AtomicBool>) -> Result<()> {
                 let body = std::str::from_utf8(&vecs[1])?;
                 info!("got req: id={:?}, body={}", msg_id, body);
                 let msg = match solve(body) {
-                    Err(err) => f!("error: {err:?}"),
+                    Err(err) => f!("error: {err:?}"), // receiver handles 'error' prefix
                     Ok(card) => card.id,
                 };
                 info!("send resp: id={:?}, msg={}", msg_id, msg);
