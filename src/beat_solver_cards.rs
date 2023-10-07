@@ -40,31 +40,35 @@ pub fn shuffle_respecting_power(cc: &Vec<Card>) -> Vec<Card> {
 pub fn shuffle_respecting_power_hm(cc: &Vec<Card>) -> Vec<Card> {
     let mut rng = thread_rng();
     let mut ret: Vec<Card> = Vec::new();
-    let mut rhm: RefCell<HashMap<isize, Vec<Card>>> = RefCell::new(HashMap::new());
+    let mut hm: HashMap<isize, Vec<Card>> = HashMap::new();
     // fill hashmap <k: power, v: [Card]>
+
     for c in cc {
-        rhm.get_mut()
+        hm
             .entry(c.power)
             .and_modify(|v| v.push(c.clone()))
             .or_insert(vec![c.clone()]);
     }
+
     // shuffle each v: [Card]
-    for k in rhm.clone().get_mut().keys() {
-        if let Some(v) = rhm.get_mut().get_mut(k) {
-            v.shuffle(&mut rng);
-        }
+    for (&k, v) in hm.clone().iter_mut() {
+        v.shuffle(&mut rng);
+        hm.entry(k).and_modify(|x| {v.clone_into(x)});
     }
     // desc keys == power
-    let mut rhm_cloned = rhm.clone();
-    let mut keys: Vec<&isize> = rhm_cloned.get_mut().keys().collect();
+    // let mut rhm_cloned = rhm.clone();
+    let mut keys: Vec<&isize> = hm.keys().collect();
     keys.sort_by(|&a, &b| b.cmp(a)); // reverse
 
-    // fill ret vector from higher to lower powers
+    // // fill ret vector from higher to lower powers
     for k in keys {
-        if let Some(v) = rhm.get_mut().get_mut(k) {
-            ret.append(v);
+        if let Some(v) = hm.get(k) {
+            let mut v = v.clone();
+            ret.append(&mut v);
         }
     }
+
+
     info!("{:?}", ret);
     ret
 }
