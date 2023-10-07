@@ -2,7 +2,7 @@ use crate::game_types::{Card, Suite};
 use anyhow::Result;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
-use std::cell::RefCell;
+
 use std::collections::HashMap;
 
 pub fn card_suites(cc: &[Card]) -> Vec<Suite> {
@@ -67,8 +67,6 @@ pub fn shuffle_respecting_power_hm(cc: &Vec<Card>) -> Vec<Card> {
             ret.append(&mut v);
         }
     }
-
-
     info!("{:?}", ret);
     ret
 }
