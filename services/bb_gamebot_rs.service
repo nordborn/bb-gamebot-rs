@@ -1,0 +1,12 @@
+[Unit]
+Description=BBGamebot
+After=network.target
+
+[Service]
+EnvironmentFile=/home/nordborn/bb/.env
+ExecStart=/home/nordborn/bb/bb-gamebot-rs
+WorkingDirectory=/home/nordborn/bb
+Restart=always
+
+[Install]
+WantedBy=default.target
