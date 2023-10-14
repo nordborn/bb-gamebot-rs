@@ -27,7 +27,7 @@ fn main() -> Result<()> {
     mylog::init_logger();
 
     info!("RUN GAME SOLVER");
-    let port: String = util::get_env("ZMQ_PORT")?;
+    let port: String = util::get_env("BB_GAME_SOLVER_ZMQ_PORT")?;
     let must_stop = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(SIGTERM, Arc::clone(&must_stop))?;
     signal_hook::flag::register(SIGINT, Arc::clone(&must_stop))?;
