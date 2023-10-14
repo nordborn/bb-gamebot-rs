@@ -1,5 +1,5 @@
 [Unit]
-Description=BBGamebot
+Description=BB_Gamebot
 After=network.target
 
 [Service]
