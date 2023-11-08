@@ -10,13 +10,13 @@ pub fn beater(suite: Suite) -> Suite {
     }
 }
 
-pub fn beaters(opponent: &Vec<Suite>, my: &Vec<Suite>) -> Result<Vec<Suite>> {
+pub fn beaters(opponent: &[Suite], my: &[Suite]) -> Result<Vec<Suite>> {
     // BAD CASE - my reached end before opponent's
     if opponent.len() != my.len() {
         anyhow::bail!("beaters: unequal length");
     }
     let mut ret: Vec<Suite> = Vec::with_capacity(my.len());
-    let mut my = my.clone();
+    let mut my = my.to_owned();
     for &op_card in opponent {
         match peek_card(beater(op_card), &my) {
             (Some(suite), my1) => {
